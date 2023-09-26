@@ -17,6 +17,7 @@
 package txpool
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/mongo"
-	"gopkg.in/mgo.v2"
 )
 
 // TxStatus is the current status of a transaction as seen by the pool.
@@ -169,34 +169,62 @@ func (p *TxPool) Close() error {
 		return fmt.Errorf("subpool close errors: %v", errs)
 	}
 	//[swx]
-	db_tx := mongo.SessionGlobal.DB("geth").C("transaction")
-	if db_tx == nil {
-		var recon_err error
-		mongo.SessionGlobal, recon_err = mgo.Dial("")
-		if recon_err != nil {
-			print("Error in database")
-			panic(recon_err)
-		}
-		db_tx = mongo.SessionGlobal.DB("geth").C("transaction")
-	}
+	// collection := mongo.ClientGlobal.Database("geth").Collection("transaction")
+	// if db_tx == nil {
+	// 	var recon_err error
+	// 	mongo.SessionGlobal, recon_err = mgo.Dial("")
+	// 	if recon_err != nil {
+	// 		print("Error in database")
+	// 		panic(recon_err)
+	// 	}
+	// 	db_tx = mongo.SessionGlobal.DB("geth").C("transaction")
+	// }
 
-	session_err := db_tx.Insert(mongo.BashTxs[0 : mongo.CurrentNum+1]...)
-	if session_err != nil {
-		mongo.SessionGlobal.Refresh()
-		for i := 0; i < mongo.CurrentNum+1; i++ {
-			session_err = db_tx.Insert(&mongo.BashTxs[i])
-			if session_err != nil {
+	// session_err := db_tx.Insert(mongo.BashTxs[0 : mongo.CurrentNum+1]...)
+	// if session_err != nil {
+	// 	mongo.SessionGlobal.Refresh()
+	// 	for i := 0; i < mongo.CurrentNum+1; i++ {
+	// 		session_err = db_tx.Insert(&mongo.BashTxs[i])
+	// 		if session_err != nil {
+	// 			json_tx, json_err := json.Marshal(&mongo.BashTxs[i])
+	// 			if json_err != nil {
+	// 				mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", mongo.BashTxs[i].(mongo.Transac).Tx_Hash, json_err))
+	// 			}
+	// 			mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", json_tx, session_err))
+	// 		}
+	// 	}
+	// }
+
+	// mongo.SessionGlobal.Close()
+	// mongo.ErrorFile.Close()
+	collection := mongo.ClientGlobal.Database("geth").Collection("transaction")
+
+	// Insert data
+	_, err := collection.InsertMany(context.TODO(), mongo.BashTxs[0:mongo.CurrentNum+1])
+	if err != nil {
+		// Handle error
+		for i := 0; i <= mongo.CurrentNum; i++ {
+			_, err := collection.InsertOne(context.TODO(), mongo.BashTxs[i])
+			if err != nil {
+				// Handle insertion error
 				json_tx, json_err := json.Marshal(&mongo.BashTxs[i])
 				if json_err != nil {
-					mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", mongo.BashTxs[i].(mongo.Transac).Tx_Hash, json_err))
+					_, _ = mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", mongo.BashTxs[i].(mongo.Transac).Tx_Hash, json_err))
 				}
-				mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", json_tx, session_err))
+				_, _ = mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", json_tx, err))
 			}
 		}
 	}
 
-	mongo.SessionGlobal.Close()
-	mongo.ErrorFile.Close()
+	// Close the MongoDB client connection
+	if err := mongo.ClientGlobal.Disconnect(context.TODO()); err != nil {
+		// Handle disconnection error
+	}
+
+	// Close the error log file
+	if err := mongo.ErrorFile.Close(); err != nil {
+		// Handle file close error
+	}
 	//[end]
 
 	return nil

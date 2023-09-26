@@ -181,7 +181,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// enough stack items available to perform the operation.
 		op = contract.GetOp(pc)
 		//[swx]
-		// Reserve the old program counter		
+		// Reserve the old program counter
 		old_pc := pc
 		//[end]
 
@@ -244,7 +244,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		mongo.TraceGlobal.WriteString(op.String())
 		mongo.TraceGlobal.WriteString(";")
 		mongo.TraceGlobal.WriteString(vandal_constant)
-		
+
 		//[end]
 		if err != nil {
 			break

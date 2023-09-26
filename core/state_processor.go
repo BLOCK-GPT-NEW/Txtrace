@@ -17,31 +17,26 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip4844"
-	"github.com/ethereum/go-ethereum/core/mongo"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/mongo"
 	"github.com/ethereum/go-ethereum/params"
-
 	// [swx]
-	// Add
-	// "github.com/ethereum/go-ethereum/common/hexutil"
-	// "gopkg.in/mgo.v2/bson"
-	// "github.com/ethereum/go-ethereum/mongo"
-	// "time"
-	"encoding/json"
-
-	"gopkg.in/mgo.v2"
 )
+
+//[end]
 
 // StateProcessor is a basic Processor, which takes care of transitioning
 // state from one point to another.
@@ -191,34 +186,41 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	if mongo.CurrentNum != mongo.BashNum-1 {
 		mongo.CurrentNum = mongo.CurrentNum + 1
 	} else {
-		db_tx := mongo.SessionGlobal.DB("geth").C("transaction")
-		if db_tx == nil {
-			var recon_err error
-			mongo.SessionGlobal, recon_err = mgo.Dial("")
-			if recon_err != nil {
-				print("Error in database")
-				panic(recon_err)
-			}
-			db_tx = mongo.SessionGlobal.DB("geth").C("transaction")
+		collection := mongo.ClientGlobal.Database("geth").Collection("transaction")
+		_, err := collection.InsertMany(context.Background(), mongo.BashTxs)
+		if err != nil {
+			// 日志记录或错误处理
+			log.Printf("Failed to insert transactions: %v", err)
 		}
-
-		session_err := db_tx.Insert(mongo.BashTxs...)
-		if session_err != nil {
-			mongo.SessionGlobal.Refresh()
-			for i := 0; i < mongo.BashNum; i++ {
-				session_err = db_tx.Insert(&mongo.BashTxs[i])
-				if session_err != nil {
-					json_tx, json_err := json.Marshal(&mongo.BashTxs[i])
-					if json_err != nil {
-						mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", mongo.BashTxs[i].(mongo.Transac).Tx_Hash, json_err))
-					}
-					mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", json_tx, session_err))
-				}
-			}
-		}
-
 		mongo.CurrentNum = 0
 	}
+	// 	if db_tx == nil {
+	// 		var recon_err error
+	// 		mongo.SessionGlobal, recon_err = mgo.Dial("")
+	// 		if recon_err != nil {
+	// 			print("Error in database")
+	// 			panic(recon_err)
+	// 		}
+	// 		db_tx = mongo.SessionGlobal.DB("geth").C("transaction")
+	// 	}
+
+	// 	session_err := db_tx.Insert(mongo.BashTxs...)
+	// 	if session_err != nil {
+	// 		mongo.SessionGlobal.Refresh()
+	// 		for i := 0; i < mongo.BashNum; i++ {
+	// 			session_err = db_tx.Insert(&mongo.BashTxs[i])
+	// 			if session_err != nil {
+	// 				json_tx, json_err := json.Marshal(&mongo.BashTxs[i])
+	// 				if json_err != nil {
+	// 					mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", mongo.BashTxs[i].(mongo.Transac).Tx_Hash, json_err))
+	// 				}
+	// 				mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", json_tx, session_err))
+	// 			}
+	// 		}
+	// 	}
+
+	// 	mongo.CurrentNum = 0
+	// }
 	//[end]
 
 	return receipt, err
