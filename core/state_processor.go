@@ -164,8 +164,15 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	}
 
 	// If the transaction created a contract, store the creation address in the receipt.
+	var toAddress string
 	if msg.To == nil {
-		receipt.ContractAddress = crypto.CreateAddress(evm.TxContext.Origin, tx.Nonce())
+		// receipt.ContractAddress = crypto.CreateAddress(evm.TxContext.Origin, tx.Nonce())
+		contractAddress := crypto.CreateAddress(evm.TxContext.Origin, tx.Nonce())
+		receipt.ContractAddress = contractAddress
+		toAddress = contractAddress.Hex()
+		//[swx]
+	} else {
+		toAddress = msg.To.Hex()
 	}
 
 	// Set the receipt logs and create the bloom filter.
@@ -185,6 +192,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 			log.Printf("Failed to reconnect to MongoDB: %v", recon_err)
 		}
 	}
+
 	// 构造交易结构体
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
 		Tx_BlockHash:         blockHash.Hex(),
@@ -195,7 +203,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		Tx_Hash:              tx.Hash().Hex(),
 		Tx_Input:             string(tx.Data()),
 		Tx_Nonce:             tx.Nonce(),
-		Tx_ToAddr:            msg.To.Hex(), // Will be empty if contract creation
+		Tx_ToAddr:            toAddress, // Will be empty if contract creation
 		Tx_Index:             fmt.Sprint(statedb.TxIndex()),
 		Tx_Value:             msg.Value.String(),
 		Re_contractAddress:   receipt.ContractAddress.Hex(),
