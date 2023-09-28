@@ -18,6 +18,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -112,19 +113,30 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 }
 
 func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error) {
+	//[swx]
+	// Check for nil pointers to avoid nil pointer dereference
+
+	if msg == nil || config == nil || gp == nil || statedb == nil || blockNumber == nil || tx == nil || usedGas == nil || evm == nil {
+		log.Println("Error: state_processor.go applyTransaction line 118 received a nil parameter")
+		return nil, errors.New("received a nil parameter")
+	}
+
+	mongo.TraceGlobal.Reset()
+	mongo.TxVMErr = ""
+	//[end]
+
 	// Create a new context to be used in the EVM environment.
 	txContext := NewEVMTxContext(msg)
 	evm.Reset(txContext, statedb)
-
-	//[swx]
-	mongo.TraceGlobal.Reset()
-	//[end]
 
 	// Apply the transaction to the current state (included in the env).
 	result, err := ApplyMessage(evm, msg, gp)
 	if err != nil {
 		return nil, err
 	}
+	//[swx]
+	mongo.TraceGlobal.Reset()
+	//[end]
 
 	// Update the state with pending changes.
 	var root []byte
@@ -164,6 +176,15 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	receipt.TransactionIndex = uint(statedb.TxIndex())
 
 	//[swx]
+	// Check if ClientGlobal is nil and try to reconnect
+	if mongo.ClientGlobal == nil {
+		var recon_err error
+		// Code to re-initialize the MongoDB client goes here
+		// ...
+		if recon_err != nil {
+			log.Printf("Failed to reconnect to MongoDB: %v", recon_err)
+		}
+	}
 	// 构造交易结构体
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
 		Tx_BlockHash:         blockHash.Hex(),
@@ -191,36 +212,23 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		if err != nil {
 			// 日志记录或错误处理
 			log.Printf("Failed to insert transactions: %v", err)
+			// Convert the failed transaction data to JSON and write to an error file
+			for _, txInterface := range mongo.BashTxs {
+				if tx, ok := txInterface.(mongo.Transac); ok {
+					json_tx, json_err := json.Marshal(tx)
+					if json_err != nil {
+						// Assuming ErrorFile is a global variable for error logging
+						mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", tx.Tx_Hash, json_err))
+					}
+					mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", string(json_tx), err))
+				} else {
+					mongo.ErrorFile.WriteString(fmt.Sprintf("Failed to assert type for transaction: %v\n", txInterface))
+				}
+			}
 		}
 		mongo.CurrentNum = 0
 	}
-	// 	if db_tx == nil {
-	// 		var recon_err error
-	// 		mongo.SessionGlobal, recon_err = mgo.Dial("")
-	// 		if recon_err != nil {
-	// 			print("Error in database")
-	// 			panic(recon_err)
-	// 		}
-	// 		db_tx = mongo.SessionGlobal.DB("geth").C("transaction")
-	// 	}
 
-	// 	session_err := db_tx.Insert(mongo.BashTxs...)
-	// 	if session_err != nil {
-	// 		mongo.SessionGlobal.Refresh()
-	// 		for i := 0; i < mongo.BashNum; i++ {
-	// 			session_err = db_tx.Insert(&mongo.BashTxs[i])
-	// 			if session_err != nil {
-	// 				json_tx, json_err := json.Marshal(&mongo.BashTxs[i])
-	// 				if json_err != nil {
-	// 					mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction;%s;%s\n", mongo.BashTxs[i].(mongo.Transac).Tx_Hash, json_err))
-	// 				}
-	// 				mongo.ErrorFile.WriteString(fmt.Sprintf("Transaction|%s|%s\n", json_tx, session_err))
-	// 			}
-	// 		}
-	// 	}
-
-	// 	mongo.CurrentNum = 0
-	// }
 	//[end]
 
 	return receipt, err
