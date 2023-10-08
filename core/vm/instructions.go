@@ -17,6 +17,9 @@
 package vm
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -27,6 +30,7 @@ import (
 func opAdd(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	x, y := scope.Stack.pop(), scope.Stack.peek()
 	y.Add(&x, y)
+
 	return nil, "", nil
 }
 
@@ -124,7 +128,7 @@ func opSgt(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte
 	return nil, "", nil
 }
 
-func opEq(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string ,error) {
+func opEq(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	x, y := scope.Stack.pop(), scope.Stack.peek()
 	if x.Eq(y) {
 		y.SetOne()
@@ -253,7 +257,7 @@ func opKeccak256(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (
 }
 func opAddress(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetBytes(scope.Contract.Address().Bytes()))
-	return nil, "", nil
+	return nil, "Address Result:" + ";" + "Contract Address:" + scope.Stack.peek().String(), nil
 }
 
 func opBalance(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -279,14 +283,26 @@ func opCallValue(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (
 }
 
 func opCallDataLoad(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
+
+	res := ""
 	x := scope.Stack.peek()
 	if offset, overflow := x.Uint64WithOverflow(); !overflow {
 		data := getData(scope.Contract.Input, offset, 32)
 		x.SetBytes(data)
+		// cnz
+		var i = 1
+		for _, arg := range data {
+			// 将 []byte 转换为字符串
+			argString := string(arg)
+			// 输出值的类型和结果
+			res += fmt.Sprintf("value%d type:%T,Value%d:%s;", i, argString, i, argString)
+			i++
+			// end
+		}
 	} else {
 		x.Clear()
 	}
-	return nil, "", nil
+	return nil, "CallDataLoad Result:" + ";" + "args:" + res, nil
 }
 
 func opCallDataSize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -314,7 +330,7 @@ func opCallDataCopy(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 
 func opReturnDataSize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetUint64(uint64(len(interpreter.returnData))))
-	return nil, "", nil
+	return nil, "ReturnDataSize Result:" + scope.Stack.peek().String(), nil
 }
 
 func opReturnDataCopy(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -515,7 +531,8 @@ func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 	hash := common.Hash(loc.Bytes32())
 	val := interpreter.evm.StateDB.GetState(scope.Contract.Address(), hash)
 	loc.SetBytes(val.Bytes())
-	return nil, "", nil
+	// print("hello opSload")
+	return nil, "Sload Result:" + ";" + "read" + ";" + "key:" + loc.String() + ";" + ";" + "value:" + val.String(), nil
 }
 
 func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -524,8 +541,11 @@ func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 	}
 	loc := scope.Stack.pop()
 	val := scope.Stack.pop()
+
 	interpreter.evm.StateDB.SetState(scope.Contract.Address(), loc.Bytes32(), val.Bytes32())
-	return nil, "", nil
+	// print("hello opSstore")
+	return nil, "Sstore Result" + ";" + "write" + ";" + "key:" + loc.String() + ";" + "value:" + val.String(), nil
+
 }
 
 func opJump(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -547,7 +567,7 @@ func opJumpi(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 	pos, cond := scope.Stack.pop(), scope.Stack.pop()
 	if !cond.IsZero() {
 		if !scope.Contract.validJumpdest(&pos) {
-			return nil, "",ErrInvalidJump
+			return nil, "", ErrInvalidJump
 		}
 		*pc = pos.Uint64() - 1 // pc will be increased by the interpreter loop
 	}
@@ -560,7 +580,7 @@ func opJumpdest(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 
 func opPc(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetUint64(*pc))
-	return nil, "", nil
+	return nil, "Pc Result:" + scope.Stack.peek().String(), nil
 }
 
 func opMsize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -575,7 +595,7 @@ func opGas(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte
 
 func opCreate(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	if interpreter.readOnly {
-		return nil, "",ErrWriteProtection
+		return nil, "", ErrWriteProtection
 	}
 	var (
 		value        = scope.Stack.pop()
@@ -613,7 +633,7 @@ func opCreate(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 
 	if suberr == ErrExecutionReverted {
 		interpreter.returnData = res // set REVERT data to return data buffer
-		return res, "",nil
+		return res, "", nil
 	}
 	interpreter.returnData = nil // clear dirty return data buffer
 	return nil, "", nil
@@ -653,12 +673,15 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]
 
 	if suberr == ErrExecutionReverted {
 		interpreter.returnData = res // set REVERT data to return data buffer
-		return res, "",nil
+		return res, "", nil
 	}
 	interpreter.returnData = nil // clear dirty return data buffer
 	return nil, "", nil
 }
 
+// cnz
+// call树里面需要from, to, function hash, gas, value, input(类型、值), output(类型、值)
+// call树修改call callcode delegatecall staticcall
 func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	stack := scope.Stack
 	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
@@ -671,8 +694,21 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	// Get the arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	// cnz
+	var tx *types.Transaction
+
+	res := ""
+	var i = 1
+	for _, arg := range args {
+		// 将 []byte 转换为字符串
+		argString := string(arg)
+		// 输出值的类型和结果
+		res += fmt.Sprintf("input%d Type:%T,input%d Value:%s;", i, argString, i, argString)
+		i++
+	}
+	// end
 	if interpreter.readOnly && !value.IsZero() {
-		return nil, "",ErrWriteProtection
+		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, ErrWriteProtection
 	}
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
@@ -697,7 +733,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "",nil
+	return ret, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -732,7 +768,21 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "",nil
+
+	// cnz
+	var tx *types.Transaction
+
+	res := ""
+	var i = 1
+	for _, arg := range args {
+		// 将 []byte 转换为字符串
+		argString := string(arg)
+		// 输出值的类型和结果
+		res += fmt.Sprintf("input%d Type:%T,input%d Value:%s;", i, argString, i, argString)
+		i++
+	}
+	// end
+	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -760,7 +810,20 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "",nil
+	// cnz
+	var tx *types.Transaction
+
+	res := ""
+	var i = 1
+	for _, arg := range args {
+		// 将 []byte 转换为字符串
+		argString := string(arg)
+		// 输出值的类型和结果
+		res += fmt.Sprintf("input%d Type:%T,input%d Value:%s;", i, argString, i, argString)
+		i++
+	}
+	// end
+	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -788,7 +851,20 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "", nil
+	// cnz
+	var tx *types.Transaction
+
+	res := ""
+	var i = 1
+	for _, arg := range args {
+		// 将 []byte 转换为字符串
+		argString := string(arg)
+		// 输出值的类型和结果
+		res += fmt.Sprintf("input%d Type:%T,input%d Value:%s;", i, argString, i, argString)
+		i++
+	}
+	// end
+	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
 }
 
 func opReturn(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -831,7 +907,7 @@ func opSelfdestruct(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 
 func opSelfdestruct6780(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	if interpreter.readOnly {
-		return nil, "",ErrWriteProtection
+		return nil, "", ErrWriteProtection
 	}
 	beneficiary := scope.Stack.pop()
 	balance := interpreter.evm.StateDB.GetBalance(scope.Contract.Address())
@@ -860,7 +936,21 @@ func makeLog(size int) executionFunc {
 			addr := stack.pop()
 			topics[i] = addr.Bytes32()
 		}
-
+		// cnz
+		// 初始化结果字符串
+		res := ""
+		// 遍历 topics 切片
+		for i, topic := range topics {
+			// 将哈希值转换为十六进制字符串
+			hexString := topic.Hex()
+			// 将转换后的字符串添加到结果字符串
+			res += hexString
+			// 如果不是最后一个元素，添加逗号分隔符
+			if i < len(topics)-1 {
+				res += ","
+			}
+		}
+		// end
 		d := scope.Memory.GetCopy(int64(mStart.Uint64()), int64(mSize.Uint64()))
 		interpreter.evm.StateDB.AddLog(&types.Log{
 			Address: scope.Contract.Address(),
@@ -871,7 +961,7 @@ func makeLog(size int) executionFunc {
 			BlockNumber: interpreter.evm.Context.BlockNumber.Uint64(),
 		})
 
-		return nil, "", nil
+		return nil, "makelog Result:" + ";" + "event hash:" + res, nil
 	}
 }
 
