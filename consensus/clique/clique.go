@@ -476,14 +476,14 @@ func (c *Clique) verifySeal(snap *Snapshot, header *types.Header, parents []*typ
 	if _, ok := snap.Signers[signer]; !ok {
 		return errUnauthorizedSigner
 	}
-	for seen, recent := range snap.Recents {
-		if recent == signer {
+	// for seen, recent := range snap.Recents {
+	//	if recent == signer {
 			// Signer is among recents, only fail if the current block doesn't shift it out
-			if limit := uint64(len(snap.Signers)/2 + 1); seen > number-limit {
-				return errRecentlySigned
-			}
-		}
-	}
+	//		if limit := uint64(len(snap.Signers)/2 + 1); seen > number-limit {
+	//			return errRecentlySigned
+	//		}
+	//	}
+	// }
 	// Ensure that the difficulty corresponds to the turn-ness of the signer
 	if !c.fakeDiff {
 		inturn := snap.inturn(header.Number.Uint64(), signer)
