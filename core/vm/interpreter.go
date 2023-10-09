@@ -247,6 +247,9 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 			mongo.TraceGlobal.WriteString(";")
 			mongo.TraceGlobal.WriteString(vandal_constant)
 
+			mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
+				Tx_Trace: mongo.TraceGlobal.String(),
+			}
 			if mongo.CurrentNum != mongo.BashNum-1 {
 				mongo.CurrentNum = mongo.CurrentNum + 1
 			} else {
