@@ -13,3 +13,8 @@
 
 ``mongodb->geth->transaction 记录交易基础信息``
 ``mongodb->geth->trace 记录需要的指令trace，如sstore中key value``
+
+``要获取信息如下``
+``call trace: from\to\function hash\gas\value\input\output``
+``state trace:read/write\key\value``
+``log trace:contract hash\event hash\log data``
