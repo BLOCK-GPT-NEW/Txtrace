@@ -239,7 +239,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
 		// 获取需要的 cnz
-		if op.String() == "SLOAD" || op.String() == "SSTORE" {
+		if op.String() == "SLOAD" || op.String() == "SSTORE" || op.String() == "LOG0" || op.String() == "LOG1" || op.String() == "LOG2" || op.String() == "LOG3" || op.String() == "LOG4" {
 			mongo.TraceGlobal.WriteString("|")
 			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
 			mongo.TraceGlobal.WriteString(";")
