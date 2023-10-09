@@ -15,6 +15,8 @@
 ``mongodb->geth->trace 记录需要的指令trace，如sstore中key value``
 
 ``要获取信息如下``
-``call trace: from\to\function hash\gas\value\input\output``
-``state trace:read/write\key\value``
-``log trace:contract hash\event hash\log data``
+``call trace: from\to\function hash\gas\value\input\output`` ``output没有，input需要将获取的信息转十六进制，再配合合约abi解析，其余已有``
+
+``state trace:read/write\key\value`` ``已获取``
+
+``log trace:contract hash\event hash\log data`` ``event hash与log data代码未测试，不知道写的对不对``
