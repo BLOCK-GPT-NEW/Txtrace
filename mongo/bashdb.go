@@ -3,14 +3,14 @@ package mongo
 // Databse 1, store the basic transaction metadata
 type Transac struct {
 	// Transaction
-	Tx_BlockHash string
-	Tx_BlockNum  uint64
+	// Tx_BlockHash string
+	// Tx_BlockNum  uint64
 	Tx_FromAddr  string
 	Tx_Gas       string
-	Tx_GasPrice  string
+	// Tx_GasPrice  string
 	Tx_Hash      string
 	Tx_Input     []byte
-	Tx_Nonce     uint64
+	// Tx_Nonce     uint64
 	Tx_ToAddr    string
 	Tx_Index     string
 	Tx_Value     string
@@ -18,10 +18,10 @@ type Transac struct {
 	// Tx_Trace string
 
 	Re_contractAddress   string
-	Re_CumulativeGasUsed string
-	Re_GasUsed           string
+	// Re_CumulativeGasUsed string
+	// Re_GasUsed           string
 	Re_Status            string
-	Re_FailReason        string
+	// Re_FailReason        string
 }
 type Trace struct {
 	Tx_Trace string
