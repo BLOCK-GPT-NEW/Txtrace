@@ -625,14 +625,14 @@ func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, res
 		return errUnauthorizedSigner
 	}
 	// If we're amongst the recent signers, wait for the next block
-	for seen, recent := range snap.Recents {
-		if recent == signer {
+	// for seen, recent := range snap.Recents {
+	//	if recent == signer {
 			// Signer is among recents, only wait if the current block doesn't shift it out
-			if limit := uint64(len(snap.Signers)/2 + 1); number < limit || seen > number-limit {
-				return errors.New("signed recently, must wait for others")
-			}
-		}
-	}
+	//		if limit := uint64(len(snap.Signers)/2 + 1); number < limit || seen > number-limit {
+	//			return errors.New("signed recently, must wait for others")
+	//		}
+	//	}
+	// }
 	// Sweet, the protocol permits us to sign the block, wait for our time
 	delay := time.Unix(int64(header.Time), 0).Sub(time.Now()) // nolint: gosimple
 	if header.Difficulty.Cmp(diffNoTurn) == 0 {
