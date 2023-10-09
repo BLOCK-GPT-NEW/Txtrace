@@ -181,7 +181,16 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	receipt.BlockHash = blockHash
 	receipt.BlockNumber = blockNumber
 	receipt.TransactionIndex = uint(statedb.TxIndex())
-
+	// cnz
+	var log_data []byte
+	var log_hash []string
+	// 遍历 Receipt 结构体中的 Logs 切片
+	for _, logEntry := range receipt.Logs {
+		// logEntry.Data =
+		// 提取每个 Log 结构体的 字段值，并将其添加到 切片中
+		log_data = append(log_data, logEntry.Data...)
+		log_hash = append(log_hash, logEntry.Address.Hex())
+	}
 	//[swx]
 	// Check if ClientGlobal is nil and try to reconnect
 	if mongo.ClientGlobal == nil {
@@ -212,6 +221,9 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		// Re_CumulativeGasUsed: fmt.Sprint(receipt.CumulativeGasUsed),
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
 		Re_Status:            fmt.Sprint(receipt.Status),
+
+		Re_Logs:log_data,
+		Re_Hash:log_hash,
 	}
 
 	if mongo.CurrentNum != mongo.BashNum-1 {
