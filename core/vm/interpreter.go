@@ -238,15 +238,16 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// execute the operation
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
-		//[swx]
-		mongo.TraceGlobal.WriteString("|")
-		mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
-		mongo.TraceGlobal.WriteString(";")
-		mongo.TraceGlobal.WriteString(op.String())
-		mongo.TraceGlobal.WriteString(";")
-		mongo.TraceGlobal.WriteString(vandal_constant)
+		// 获取需要的 cnz
+		if op.String() == "SLOAD" || op.String() == "SSTORE" {
+			mongo.TraceGlobal.WriteString("|")
+			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
+			mongo.TraceGlobal.WriteString(";")
+			mongo.TraceGlobal.WriteString(op.String())
+			mongo.TraceGlobal.WriteString(";")
+			mongo.TraceGlobal.WriteString(vandal_constant)
+		}
 
-		//cnz
 		mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
 			Tx_Trace: mongo.TraceGlobal.String(),
 		}
