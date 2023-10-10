@@ -18,6 +18,7 @@ package vm
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
