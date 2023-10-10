@@ -695,7 +695,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
 	// cnz
-	var tx *types.Transaction
+	//var tx *types.Transaction
 
 	res := ""
 	var i = 1
@@ -708,7 +708,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	}
 	// end
 	if interpreter.readOnly && !value.IsZero() {
-		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, ErrWriteProtection
+		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, ErrWriteProtection
 	}
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
@@ -733,7 +733,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
+	return ret, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -770,7 +770,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	interpreter.returnData = ret
 
 	// cnz
-	var tx *types.Transaction
+	//var tx *types.Transaction
 
 	res := ""
 	var i = 1
@@ -782,7 +782,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 		i++
 	}
 	// end
-	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
+	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";"  + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -811,7 +811,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 
 	interpreter.returnData = ret
 	// cnz
-	var tx *types.Transaction
+	// var tx *types.Transaction
 
 	res := ""
 	var i = 1
@@ -823,7 +823,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 		i++
 	}
 	// end
-	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
+	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -852,7 +852,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 
 	interpreter.returnData = ret
 	// cnz
-	var tx *types.Transaction
+	// var tx *types.Transaction
 
 	res := ""
 	var i = 1
@@ -864,7 +864,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 		i++
 	}
 	// end
-	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "function hash:" + fmt.Sprintf("%x", tx.Hash()) + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
+	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
 }
 
 func opReturn(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
