@@ -183,15 +183,17 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	receipt.BlockNumber = blockNumber
 	receipt.TransactionIndex = uint(statedb.TxIndex())
 	// cnz
-	var log_data []byte
-	var log_hash []string
-	// 遍历 Receipt 结构体中的 Logs 切片
-	for _, logEntry := range receipt.Logs {
-		// logEntry.Data =
-		// 提取每个 Log 结构体的 字段值，并将其添加到 切片中
-		log_data = append(log_data, logEntry.Data...)
-		log_hash = append(log_hash, logEntry.Address.Hex())
-	}
+	/*
+		var log_data []byte
+		var log_hash []string
+		// 遍历 Receipt 结构体中的 Logs 切片
+		for _, logEntry := range receipt.Logs {
+			// logEntry.Data =
+			// 提取每个 Log 结构体的 字段值，并将其添加到 切片中
+			log_data = append(log_data, logEntry.Data...)
+			log_hash = append(log_hash, logEntry.Address.Hex())
+		}
+	*/
 	// 处理TxHashGlobal
 	mongo.TxHashGlobal.Reset()
 	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
@@ -206,6 +208,22 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		}
 	}
 
+	// 处理input
+	// 处理data
+	var res1 []string
+	// 遍历 []byte 中的每个字节
+	for _, b := range tx.Data() {
+		// 使用 encoding/hex 包将字节转换为十六进制字符串
+		hexString := hex.EncodeToString([]byte{b})
+		// 将结果添加到 res1 切片中
+		res1 = append(res1, hexString)
+	}
+	// 将 res1 切片中的十六进制字符串连接为一个字符串
+	finalResult := ""
+	for _, hexStr := range res1 {
+		finalResult += hexStr
+	}
+
 	// 构造交易结构体
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
 		// Tx_BlockHash: blockHash.Hex(),
@@ -214,7 +232,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		Tx_Gas:      fmt.Sprint(result.UsedGas),
 		// Tx_GasPrice:  msg.GasPrice.String(),
 		Tx_Hash:  tx.Hash().Hex(),
-		Tx_Input: hex.EncodeToString(tx.Data()),
+		Tx_Input: finalResult,
 		// Tx_Nonce:     tx.Nonce(),
 		Tx_ToAddr: toAddress, // Will be empty if contract creation
 		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
@@ -226,8 +244,8 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
 		Re_Status: fmt.Sprint(receipt.Status),
 
-		Re_Logs: log_data,
-		Re_Hash: log_hash,
+		// Re_Logs: log_data,
+		// Re_Hash: log_hash,
 	}
 
 	if mongo.CurrentNum != mongo.BashNum-1 {

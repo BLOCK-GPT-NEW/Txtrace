@@ -15,7 +15,7 @@
 ``mongodb->geth->trace 记录需要的指令trace，如sstore中key value``
 
 ``要获取信息如下``
-``call trace: from\to\function hash\gas\value\input\output`` ``output没有，input需要将获取的信息转十六进制，再配合合约abi解析，其余已有``
+``call trace: from\to\function hash\gas\value\input\output`` ``output没有，input需要配合合约abi解析，其余已有``
 
 ``state trace:read/write\key\value`` ``已获取``
 
@@ -23,4 +23,4 @@
 
 ``当前mongodb端口为27018``
 
-``10.10 当前还需要修改input编码问题，端口自定义问题，两张表合并问题``
+``10.10 端口自定义问题，两张表合并问题``

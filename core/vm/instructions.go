@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -696,7 +697,6 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 
 	// cnz
 	//var tx *types.Transaction
-
 	res := ""
 	var i = 1
 	for _, arg := range args {
@@ -708,7 +708,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	}
 	// end
 	if interpreter.readOnly && !value.IsZero() {
-		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, ErrWriteProtection
+		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, ErrWriteProtection
 	}
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
@@ -733,7 +733,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
+	return ret, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -782,7 +782,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 		i++
 	}
 	// end
-	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";"  + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
+	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + res, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -823,7 +823,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 		i++
 	}
 	// end
-	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
+	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -864,7 +864,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 		i++
 	}
 	// end
-	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() +  ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
+	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + res, nil
 }
 
 func opReturn(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -960,8 +960,23 @@ func makeLog(size int) executionFunc {
 			// core/state doesn't know the current block number.
 			BlockNumber: interpreter.evm.Context.BlockNumber.Uint64(),
 		})
+		// 处理data
+		var res1 []string
 
-		return nil, "makelog Result:" + ";" + "event hash:" + res, nil
+		// 遍历 []byte 中的每个字节
+		for _, b := range d {
+			// 使用 encoding/hex 包将字节转换为十六进制字符串
+			hexString := hex.EncodeToString([]byte{b})
+			// 将结果添加到 res1 切片中
+			res1 = append(res1, hexString)
+		}
+		// 将 res1 切片中的十六进制字符串连接为一个字符串
+		finalResult := ""
+		for _, hexStr := range res1 {
+			finalResult += hexStr
+		}
+
+		return nil, "makelog Result:" + ";" + "event hash:" + res + ";" + "log data" + finalResult, nil
 	}
 }
 
