@@ -22,3 +22,5 @@
 ``log trace:contract hash\event hash\log data`` ``event hash与log data代码未测试，不知道写的对不对``
 
 ``当前mongodb端口为27018``
+
+``10.10 当前还需要修改input编码问题，端口自定义问题，两张表合并问题`
