@@ -191,6 +191,9 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		log_data = append(log_data, logEntry.Data...)
 		log_hash = append(log_hash, logEntry.Address.Hex())
 	}
+	// 处理TxHashGlobal
+	mongo.TxHashGlobal.Reset()
+	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())	
 	//[swx]
 	// Check if ClientGlobal is nil and try to reconnect
 	if mongo.ClientGlobal == nil {
