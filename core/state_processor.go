@@ -18,6 +18,7 @@ package core
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -193,7 +194,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	}
 	// 处理TxHashGlobal
 	mongo.TxHashGlobal.Reset()
-	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())	
+	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
 	//[swx]
 	// Check if ClientGlobal is nil and try to reconnect
 	if mongo.ClientGlobal == nil {
@@ -209,24 +210,24 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
 		// Tx_BlockHash: blockHash.Hex(),
 		// Tx_BlockNum:  blockNumber.Uint64(),
-		Tx_FromAddr:  msg.From.Hex(),
-		Tx_Gas:       fmt.Sprint(result.UsedGas),
+		Tx_FromAddr: msg.From.Hex(),
+		Tx_Gas:      fmt.Sprint(result.UsedGas),
 		// Tx_GasPrice:  msg.GasPrice.String(),
-		Tx_Hash:      tx.Hash().Hex(),
-		Tx_Input:     tx.Data(),
+		Tx_Hash:  tx.Hash().Hex(),
+		Tx_Input: hex.EncodeToString(tx.Data()),
 		// Tx_Nonce:     tx.Nonce(),
-		Tx_ToAddr:    toAddress, // Will be empty if contract creation
-		Tx_Index:     fmt.Sprint(statedb.TxIndex()),
-		Tx_Value:     msg.Value.String(),
+		Tx_ToAddr: toAddress, // Will be empty if contract creation
+		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
+		Tx_Value:  msg.Value.String(),
 
 		// Tx_Trace:             vm.OpCode.String(),
-		Re_contractAddress:   receipt.ContractAddress.Hex(),
+		Re_contractAddress: receipt.ContractAddress.Hex(),
 		// Re_CumulativeGasUsed: fmt.Sprint(receipt.CumulativeGasUsed),
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
-		Re_Status:            fmt.Sprint(receipt.Status),
+		Re_Status: fmt.Sprint(receipt.Status),
 
-		Re_Logs:log_data,
-		Re_Hash:log_hash,
+		Re_Logs: log_data,
+		Re_Hash: log_hash,
 	}
 
 	if mongo.CurrentNum != mongo.BashNum-1 {
