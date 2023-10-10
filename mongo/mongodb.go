@@ -19,7 +19,7 @@ var ErrorFile *os.File
 
 func InitMongoDb() {
 	var err error
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27018")
 
 	// Connect to MongoDB
 	ClientGlobal, err = mongo.Connect(context.TODO(), clientOptions)
