@@ -238,37 +238,32 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// execute the operation
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
-		// 获取需要的 cnz
-		if op.String() == "SLOAD" || op.String() == "SSTORE" || op.String() == "LOG0" || op.String() == "LOG1" || op.String() == "LOG2" || op.String() == "LOG3" || op.String() == "LOG4" {
-			mongo.TraceGlobal.WriteString("|")
-			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
-			mongo.TraceGlobal.WriteString(";")
-			mongo.TraceGlobal.WriteString(op.String())
-			mongo.TraceGlobal.WriteString(";")
-			mongo.TraceGlobal.WriteString(vandal_constant)
-
-			mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
-				Tx_Trace: mongo.TraceGlobal.String(),
-			}
-			if mongo.CurrentNum != mongo.BashNum-1 {
-				mongo.CurrentNum = mongo.CurrentNum + 1
-			} else {
-				collection := mongo.ClientGlobal.Database("geth").Collection("trace")
-				_, err := collection.InsertMany(context.Background(), mongo.BashTxs)
-				if err != nil {
-					continue
-				}
-				mongo.CurrentNum = 0
-			}
-			mongo.TraceGlobal.Reset()		
-		}
-		//[end]
+		
 		if err != nil {
 			break
 		}
+		mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
+		mongo.TraceGlobal.WriteString(";")
+		mongo.TraceGlobal.WriteString(op.String())
+		mongo.TraceGlobal.WriteString(";")
+		mongo.TraceGlobal.WriteString(vandal_constant)
+		mongo.TraceGlobal.WriteString("|")	
 		pc++
 	}
-
+	mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
+		Tx_Hash:  mongo.TxHashGlobal.String(),
+		Tx_Trace: mongo.TraceGlobal.String(),
+	}
+	if mongo.CurrentNum != mongo.BashNum-1 {
+		mongo.CurrentNum = mongo.CurrentNum + 1
+	} else {
+		collection := mongo.ClientGlobal.Database("geth").Collection("trace")
+		_, err := collection.InsertMany(context.Background(), mongo.BashTxs)
+		if err != nil {
+			fmt.Print(err)
+		}
+		mongo.CurrentNum = 0
+	}
 	if err == errStopToken {
 		err = nil // clear stop token error
 	}
