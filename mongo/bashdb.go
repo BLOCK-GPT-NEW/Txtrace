@@ -28,6 +28,7 @@ type Transac struct {
 }
 type Trace struct {
 	Tx_Trace string
+	Tx_Hash string
 }
 
 // 默认为50， 这里改成1仅为了测试
