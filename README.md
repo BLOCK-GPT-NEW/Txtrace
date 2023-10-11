@@ -19,7 +19,7 @@
 
 ``state trace:read/write\key\value`` ``已获取``
 
-``log trace:contract hash\event hash\log data`` ``event hash与log data代码未测试，不知道写的对不对``
+``log trace:contract hash\event hash\log data`` ``data部分有未测试``
 
 ``当前mongodb端口为27018``
 
