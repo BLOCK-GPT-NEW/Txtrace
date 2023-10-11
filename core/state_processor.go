@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -211,6 +212,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	// 处理input
 	// 处理data
 	var res1 []string
+	var resString string
 	// 遍历 []byte 中的每个字节
 	for _, b := range tx.Data() {
 		// 使用 encoding/hex 包将字节转换为十六进制字符串
@@ -218,11 +220,12 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		// 将结果添加到 res1 切片中
 		res1 = append(res1, hexString)
 	}
-	// 将 res1 切片中的十六进制字符串连接为一个字符串
+	resString = strings.Join(res1, ",")
+	/*// 将 res1 切片中的十六进制字符串连接为一个字符串
 	finalResult := ""
 	for _, hexStr := range res1 {
 		finalResult += hexStr
-	}
+	}*/
 
 	// 构造交易结构体
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
@@ -232,7 +235,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		Tx_Gas:      fmt.Sprint(result.UsedGas),
 		// Tx_GasPrice:  msg.GasPrice.String(),
 		Tx_Hash:  tx.Hash().Hex(),
-		Tx_Input: finalResult,
+		Tx_Input: resString,
 		// Tx_Nonce:     tx.Nonce(),
 		Tx_ToAddr: toAddress, // Will be empty if contract creation
 		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
