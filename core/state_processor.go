@@ -115,6 +115,10 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 }
 
 func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error) {
+
+	// cnz 处理TxHashGlobal
+	mongo.TxHashGlobal.Reset()
+	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
 	//[swx]
 	// Check for nil pointers to avoid nil pointer dereference
 
@@ -195,9 +199,6 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 			log_hash = append(log_hash, logEntry.Address.Hex())
 		}
 	*/
-	// 处理TxHashGlobal
-	mongo.TxHashGlobal.Reset()
-	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
 	//[swx]
 	// Check if ClientGlobal is nil and try to reconnect
 	if mongo.ClientGlobal == nil {
