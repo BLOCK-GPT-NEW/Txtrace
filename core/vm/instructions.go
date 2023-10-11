@@ -945,7 +945,9 @@ func makeLog(size int) executionFunc {
 		// cnz
 		// 初始化结果字符串
 		res := ""
+
 		// 遍历 topics 切片
+
 		for i, topic := range topics {
 			// 将哈希值转换为十六进制字符串
 			hexString := topic.Hex()
@@ -979,7 +981,7 @@ func makeLog(size int) executionFunc {
 		// 将 res1 切片中的十六进制字符串连接为一个字符串
 
 		resString = strings.Join(res1, "")
-		return nil, "makelog Result:" + ";" + "event hash:" + res + ";" + "log data" + resString, nil
+		return nil, "makelog Result:" + ";" + "contract address:" + scope.Contract.Address().String() + ";" + "topics:" + res + ";" + "data" + resString, nil
 	}
 }
 

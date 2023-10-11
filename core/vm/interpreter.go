@@ -239,17 +239,18 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// execute the operation
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
-		
-		if err != nil {
-			break
-		}
+
 		mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
 		mongo.TraceGlobal.WriteString(";")
 		mongo.TraceGlobal.WriteString(op.String())
 		mongo.TraceGlobal.WriteString(";")
 		mongo.TraceGlobal.WriteString(vandal_constant)
-		mongo.TraceGlobal.WriteString("|")	
+		mongo.TraceGlobal.WriteString("|")
 		pc++
+
+		if err != nil {
+			break
+		}
 	}
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
 		Tx_Hash:  mongo.TxHashGlobal.String(),
@@ -265,6 +266,10 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 		mongo.CurrentNum = 0
 	}
+
+	mongo.TxHashGlobal.Reset()
+	mongo.TraceGlobal.Reset()
+
 	if err == errStopToken {
 		err = nil // clear stop token error
 	}
