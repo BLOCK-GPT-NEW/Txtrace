@@ -221,7 +221,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		// 将结果添加到 res1 切片中
 		res1 = append(res1, hexString)
 	}
-	resString = strings.Join(res1, ",")
+	resString = strings.Join(res1, "")
 	/*// 将 res1 切片中的十六进制字符串连接为一个字符串
 	finalResult := ""
 	for _, hexStr := range res1 {

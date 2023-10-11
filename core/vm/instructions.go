@@ -300,7 +300,7 @@ func opCallDataLoad(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 			// 将结果添加到 res1 切片中
 			res = append(res, hexString)
 		}
-		resString = strings.Join(res, ",")
+		resString = strings.Join(res, "")
 		// end
 	} else {
 		x.Clear()
@@ -708,7 +708,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
-	resString = strings.Join(res, ",")
+	resString = strings.Join(res, "")
 	// end
 	if interpreter.readOnly && !value.IsZero() {
 		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + resString, ErrWriteProtection
@@ -784,7 +784,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
-	resString = strings.Join(res, ",")
+	resString = strings.Join(res, "")
 	// end
 	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + resString, nil
 }
@@ -826,7 +826,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
-	resString = strings.Join(res, ",")
+	resString = strings.Join(res, "")
 	// end
 	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + resString, nil
 }
@@ -868,7 +868,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
-	resString = strings.Join(res, ",")
+	resString = strings.Join(res, "")
 	// end
 	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + resString, nil
 }
@@ -978,7 +978,7 @@ func makeLog(size int) executionFunc {
 		}
 		// 将 res1 切片中的十六进制字符串连接为一个字符串
 
-		resString = strings.Join(res1, ",")
+		resString = strings.Join(res1, "")
 		return nil, "makelog Result:" + ";" + "event hash:" + res + ";" + "log data" + resString, nil
 	}
 }
