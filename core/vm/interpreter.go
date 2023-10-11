@@ -267,7 +267,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		mongo.CurrentNum = 0
 	}
 
-	mongo.TxHashGlobal.Reset()
+	// mongo.TxHashGlobal.Reset()
 	mongo.TraceGlobal.Reset()
 
 	if err == errStopToken {
