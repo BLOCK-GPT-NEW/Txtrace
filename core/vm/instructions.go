@@ -19,7 +19,7 @@ package vm
 import (
 	"encoding/hex"
 	// "fmt"
-	"strconv"
+	// "strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -697,21 +697,8 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	// Get the arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
-	// cnz
-	//var tx *types.Transaction
-	var res []string
-	var resString string
-	// 遍历 []byte 中的每个字节
-	for _, b := range args {
-		// 使用 encoding/hex 包将字节转换为十六进制字符串
-		hexString := hex.EncodeToString([]byte{b})
-		// 将结果添加到 res 切片中
-		res = append(res, hexString)
-	}
-	resString = strings.Join(res, "")
-	// end
 	if interpreter.readOnly && !value.IsZero() {
-		return nil, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + resString, ErrWriteProtection
+		return nil, "", ErrWriteProtection
 	}
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
@@ -723,6 +710,20 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	}
 
 	ret, returnGas, err := interpreter.evm.Call(scope.Contract, toAddr, args, gas, bigVal)
+
+	// cnz
+	//var tx *types.Transaction
+	var res []string
+	var resString string
+	// 遍历 []byte 中的每个字节
+	for _, b := range ret {
+		// 使用 encoding/hex 包将字节转换为十六进制字符串
+		hexString := hex.EncodeToString([]byte{b})
+		// 将结果添加到 res 切片中
+		res = append(res, hexString)
+	}
+	resString = strings.Join(res, "")
+	// end
 
 	if err != nil {
 		temp.Clear()
@@ -736,7 +737,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "Call Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + resString, nil
+	return ret, "Call Result:" + resString, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -773,12 +774,10 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	interpreter.returnData = ret
 
 	// cnz
-	//var tx *types.Transaction
-
 	var res []string
 	var resString string
 	// 遍历 []byte 中的每个字节
-	for _, b := range args {
+	for _, b := range ret {
 		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
 		// 将结果添加到 res 切片中
@@ -786,7 +785,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "CallCode Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + value.String() + ";" + "args:" + resString, nil
+	return ret, "CallCode Result:" + resString, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -820,7 +819,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	var res []string
 	var resString string
 	// 遍历 []byte 中的每个字节
-	for _, b := range args {
+	for _, b := range ret {
 		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
 		// 将结果添加到 res 切片中
@@ -828,7 +827,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "DelegateCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + resString, nil
+	return ret, "DelegateCall Result:" + resString, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -862,7 +861,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 	var res []string
 	var resString string
 	// 遍历 []byte 中的每个字节
-	for _, b := range args {
+	for _, b := range ret {
 		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
 		// 将结果添加到 res 切片中
@@ -870,7 +869,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "StaticCall Result:" + ";" + "from:" + addr.String() + ";" + "to:" + toAddr.String() + ";" + "gas:" + strconv.FormatUint(gas, 16) + ";" + "value:" + "none" + ";" + "args:" + resString, nil
+	return ret, "StaticCall Result:" + resString, nil
 }
 
 func opReturn(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {

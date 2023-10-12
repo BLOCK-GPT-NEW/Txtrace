@@ -17,8 +17,8 @@
 package vm
 
 import (
-	"context"
-	"fmt"
+	// "context"
+	// "fmt"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -109,7 +109,7 @@ func NewEVMInterpreter(evm *EVM) *EVMInterpreter {
 // It's important to note that any errors returned by the interpreter should be
 // considered a revert-and-consume-all-gas operation except for
 // ErrExecutionReverted which means revert-and-keep-gas-left.
-func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
+func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool, redundency bool) (ret []byte, err error) {
 	// Increment the call depth which is restricted to 1024
 	in.evm.depth++
 	defer func() { in.evm.depth-- }()
@@ -240,19 +240,21 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
 
-		mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
-		mongo.TraceGlobal.WriteString(";")
-		mongo.TraceGlobal.WriteString(op.String())
-		mongo.TraceGlobal.WriteString(";")
-		mongo.TraceGlobal.WriteString(vandal_constant)
-		mongo.TraceGlobal.WriteString("|")
-		pc++
+		if redundency {
+			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
+			mongo.TraceGlobal.WriteString(";")
+			mongo.TraceGlobal.WriteString(op.String())
+			mongo.TraceGlobal.WriteString(";")
+			mongo.TraceGlobal.WriteString(vandal_constant)
+			mongo.TraceGlobal.WriteString("|")
+		}
 
 		if err != nil {
 			break
 		}
+		pc++
 	}
-	mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
+	/* mongo.BashTxs[mongo.CurrentNum] = mongo.Trace{
 		Tx_Hash:  mongo.TxHashGlobal.String(),
 		Tx_Trace: mongo.TraceGlobal.String(),
 	}
@@ -269,7 +271,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 	// mongo.TxHashGlobal.Reset()
 	mongo.TraceGlobal.Reset()
-
+	*/
 	if err == errStopToken {
 		err = nil // clear stop token error
 	}

@@ -117,8 +117,8 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error) {
 
 	// cnz 处理TxHashGlobal
-	mongo.TxHashGlobal.Reset()
-	mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
+	// mongo.TxHashGlobal.Reset()
+	// mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
 	//[swx]
 	// Check for nil pointers to avoid nil pointer dereference
 
@@ -133,16 +133,18 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 
 	// Create a new context to be used in the EVM environment.
 	txContext := NewEVMTxContext(msg)
-	evm.Reset(txContext, statedb)
+	fal := false
+	evm.Reset(txContext, statedb, fal)
+
+	//[swx]
+	mongo.TraceGlobal.Reset()
+	//[end]
 
 	// Apply the transaction to the current state (included in the env).
 	result, err := ApplyMessage(evm, msg, gp)
 	if err != nil {
 		return nil, err
 	}
-	//[swx]
-	mongo.TraceGlobal.Reset()
-	//[end]
 
 	// Update the state with pending changes.
 	var root []byte
@@ -242,7 +244,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
 		Tx_Value:  msg.Value.String(),
 
-		// Tx_Trace:             vm.OpCode.String(),
+		Tx_Trace:           mongo.TraceGlobal.String(),
 		Re_contractAddress: receipt.ContractAddress.Hex(),
 		// Re_CumulativeGasUsed: fmt.Sprint(receipt.CumulativeGasUsed),
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
@@ -312,7 +314,8 @@ func ProcessBeaconBlockRoot(beaconRoot common.Hash, vmenv *vm.EVM, statedb *stat
 		To:        &params.BeaconRootsStorageAddress,
 		Data:      beaconRoot[:],
 	}
-	vmenv.Reset(NewEVMTxContext(msg), statedb)
+	fal := false
+	vmenv.Reset(NewEVMTxContext(msg), statedb, fal)
 	statedb.AddAddressToAccessList(params.BeaconRootsStorageAddress)
 	_, _, _ = vmenv.Call(vm.AccountRef(msg.From), *msg.To, msg.Data, 30_000_000, common.Big0)
 	statedb.Finalise(true)

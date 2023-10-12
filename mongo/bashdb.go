@@ -15,7 +15,7 @@ type Transac struct {
 	Tx_Index  string
 	Tx_Value  string
 
-	// Tx_Trace string
+	Tx_Trace string
 
 	Re_contractAddress string
 	// Re_CumulativeGasUsed string
@@ -26,11 +26,12 @@ type Transac struct {
 	// Re_Logs []byte
 	// Re_Hash []string
 }
-type Trace struct {
+
+/* type Trace struct {
 	Tx_Trace string
 	Tx_Hash  string
 }
-
+*/
 // 默认为50， 这里改成1仅为了测试
 var BashNum int = 1
 var BashTxs = make([]interface{}, BashNum)

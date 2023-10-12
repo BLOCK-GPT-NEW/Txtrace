@@ -12,7 +12,8 @@ import (
 
 var ClientGlobal *mongo.Client // 替代原来的 *mgo.Session
 var TraceGlobal = bytes.NewBuffer(make([]byte, 0, 10485760))
-var TxHashGlobal = bytes.NewBuffer(make([]byte, 0, 10485760))
+
+// var TxHashGlobal = bytes.NewBuffer(make([]byte, 0, 10485760))
 var CurrentTx string
 var CurrentBlockNum uint64
 var TxVMErr string
