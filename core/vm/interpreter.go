@@ -240,7 +240,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool, r
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
 
-		if redundency {
+		if !redundency {
 			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
 			mongo.TraceGlobal.WriteString(";")
 			mongo.TraceGlobal.WriteString(op.String())
