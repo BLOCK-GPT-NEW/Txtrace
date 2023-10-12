@@ -120,6 +120,8 @@ type EVM struct {
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
 	// applied in opCall*.
 	callGasTemp uint64
+
+	redundency bool
 }
 
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
@@ -139,9 +141,10 @@ func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb StateDB, chainConfig
 
 // Reset resets the EVM with a new transaction context.Reset
 // This is not threadsafe and should only be done very cautiously.
-func (evm *EVM) Reset(txCtx TxContext, statedb StateDB) {
+func (evm *EVM) Reset(txCtx TxContext, statedb StateDB, redundency bool) {
 	evm.TxContext = txCtx
 	evm.StateDB = statedb
+	evm.redundency = redundency
 }
 
 // Cancel cancels any running EVM operation. This may be called concurrently and
@@ -233,7 +236,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			// The depth-check is already done, and precompiles handled above
 			contract := NewContract(caller, AccountRef(addrCopy), value, gas)
 			contract.SetCallCode(&addrCopy, evm.StateDB.GetCodeHash(addrCopy), code)
-			ret, err = evm.interpreter.Run(contract, input, false)
+			ret, err = evm.interpreter.Run(contract, input, false, evm.redundency)
 			gas = contract.Gas
 		}
 	}
@@ -290,7 +293,7 @@ func (evm *EVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 		// The contract is a scoped environment for this execution context only.
 		contract := NewContract(caller, AccountRef(caller.Address()), value, gas)
 		contract.SetCallCode(&addrCopy, evm.StateDB.GetCodeHash(addrCopy), evm.StateDB.GetCode(addrCopy))
-		ret, err = evm.interpreter.Run(contract, input, false)
+		ret, err = evm.interpreter.Run(contract, input, false, evm.redundency)
 		gas = contract.Gas
 	}
 	if err != nil {
@@ -334,7 +337,7 @@ func (evm *EVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 		// Initialise a new contract and make initialise the delegate values
 		contract := NewContract(caller, AccountRef(caller.Address()), nil, gas).AsDelegate()
 		contract.SetCallCode(&addrCopy, evm.StateDB.GetCodeHash(addrCopy), evm.StateDB.GetCode(addrCopy))
-		ret, err = evm.interpreter.Run(contract, input, false)
+		ret, err = evm.interpreter.Run(contract, input, false, evm.redundency)
 		gas = contract.Gas
 	}
 	if err != nil {
@@ -390,7 +393,7 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 		// When an error was returned by the EVM or when setting the creation code
 		// above we revert to the snapshot and consume any gas remaining. Additionally
 		// when we're in Homestead this also counts for code storage gas errors.
-		ret, err = evm.interpreter.Run(contract, input, true)
+		ret, err = evm.interpreter.Run(contract, input, true, evm.redundency)
 		gas = contract.Gas
 	}
 	if err != nil {
@@ -460,7 +463,7 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 		}
 	}
 
-	ret, err := evm.interpreter.Run(contract, nil, false)
+	ret, err := evm.interpreter.Run(contract, nil, false, evm.redundency)
 
 	// Check whether the max code size has been exceeded, assign err if the case.
 	if err == nil && evm.chainRules.IsEIP158 && len(ret) > params.MaxCodeSize {
