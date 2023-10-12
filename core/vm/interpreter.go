@@ -240,12 +240,14 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
 
+		mongo.TraceGlobalMutex.Lock() //互斥锁
 		mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
 		mongo.TraceGlobal.WriteString(";")
 		mongo.TraceGlobal.WriteString(op.String())
 		mongo.TraceGlobal.WriteString(";")
 		mongo.TraceGlobal.WriteString(vandal_constant)
 		mongo.TraceGlobal.WriteString("|")
+		mongo.TraceGlobalMutex.Unlock() //互斥锁
 		pc++
 
 		if err != nil {
