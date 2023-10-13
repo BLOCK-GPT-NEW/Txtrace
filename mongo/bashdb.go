@@ -4,13 +4,13 @@ package mongo
 type Transac struct {
 	// Transaction
 	// Tx_BlockHash string
-	// Tx_BlockNum  uint64
+	Tx_BlockNum uint64
 	Tx_FromAddr string
-	Tx_Gas      string
+	Tx_Gas      uint64
 	// Tx_GasPrice  string
-	Tx_Hash  string
-	Tx_Input string
-	// Tx_Nonce     uint64
+	Tx_Hash   string
+	Tx_Input  string
+	Tx_Nonce  uint64
 	Tx_ToAddr string
 	Tx_Index  string
 	Tx_Value  string

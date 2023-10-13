@@ -233,13 +233,13 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	// 构造交易结构体
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
 		// Tx_BlockHash: blockHash.Hex(),
-		// Tx_BlockNum:  blockNumber.Uint64(),
+		Tx_BlockNum: blockNumber.Uint64(),
 		Tx_FromAddr: msg.From.Hex(),
-		Tx_Gas:      fmt.Sprint(result.UsedGas),
+		Tx_Gas:      result.UsedGas,
 		// Tx_GasPrice:  msg.GasPrice.String(),
-		Tx_Hash:  tx.Hash().Hex(),
-		Tx_Input: resString,
-		// Tx_Nonce:     tx.Nonce(),
+		Tx_Hash:   tx.Hash().Hex(),
+		Tx_Input:  resString,
+		Tx_Nonce:  tx.Nonce(),
 		Tx_ToAddr: toAddress, // Will be empty if contract creation
 		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
 		Tx_Value:  msg.Value.String(),
