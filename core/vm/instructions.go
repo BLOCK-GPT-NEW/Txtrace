@@ -697,6 +697,16 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	// Get the arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	// 处理args
+	var args_slice []string
+	args_string := ""
+
+	for _, b := range args {
+		hexString := hex.EncodeToString([]byte{b})
+		args_slice = append(args_slice, hexString)
+	}
+	args_string = strings.Join(args_slice, "")
+	// end
 	if interpreter.readOnly && !value.IsZero() {
 		return nil, "", ErrWriteProtection
 	}
@@ -733,7 +743,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "Result:" + resString, nil
+	return ret, "call Result:" + resString + ";" + "from addr:" + addr.Hex() + ";" + "to addr:" + toAddr.Hex() + ";" + "gas:" + strconv.FormatUint(gas, 10) + ";" + "value:" + value.String() + ";" + "args:" + args_string, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
