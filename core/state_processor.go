@@ -196,16 +196,19 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		log_topics = append(log_topics, logEntry.Topics...)
 	}
 	// 处理日志中address
-	log_address_string := strings.Join(log_address, "")
+	log_address_string := strings.Join(log_address, ",")
+
 	// 处理日志中topics
 	log_topics_string := ""
-	var log_topics_string_slice []string
 
-	for _, b := range log_topics {
+	for i, b := range log_topics {
 		hexString := b.Hex()
-		log_topics_string_slice = append(log_topics_string_slice, hexString)
+		log_topics_string += hexString
+		if i < len(log_topics)-1 {
+			log_topics_string += ","
+		}
 	}
-	log_topics_string = strings.Join(log_topics_string_slice, "")
+
 	// 处理日志中data
 	var log_data_string_slice []string
 	log_data_string := ""
@@ -215,6 +218,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		log_data_string_slice = append(log_data_string_slice, hexString)
 	}
 	log_data_string = strings.Join(log_data_string_slice, "")
+
 	//end
 
 	//[swx]

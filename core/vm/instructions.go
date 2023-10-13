@@ -939,23 +939,6 @@ func makeLog(size int) executionFunc {
 			addr := stack.pop()
 			topics[i] = addr.Bytes32()
 		}
-		// cnz
-		// 初始化结果字符串
-		res := ""
-
-		// 遍历 topics 切片
-
-		for i, topic := range topics {
-			// 将哈希值转换为十六进制字符串
-			hexString := topic.Hex()
-			// 将转换后的字符串添加到结果字符串
-			res += hexString
-			// 如果不是最后一个元素，添加逗号分隔符
-			if i < len(topics)-1 {
-				res += ","
-			}
-		}
-		// end
 		d := scope.Memory.GetCopy(int64(mStart.Uint64()), int64(mSize.Uint64()))
 		interpreter.evm.StateDB.AddLog(&types.Log{
 			Address: scope.Contract.Address(),
@@ -965,20 +948,7 @@ func makeLog(size int) executionFunc {
 			// core/state doesn't know the current block number.
 			BlockNumber: interpreter.evm.Context.BlockNumber.Uint64(),
 		})
-		// 处理data
-		var res1 []string
-		var resString string
-		// 遍历 []byte 中的每个字节
-		for _, b := range d {
-			// 使用 encoding/hex 包将字节转换为十六进制字符串
-			hexString := hex.EncodeToString([]byte{b})
-			// 将结果添加到 res1 切片中
-			res1 = append(res1, hexString)
-		}
-		// 将 res1 切片中的十六进制字符串连接为一个字符串
-
-		resString = strings.Join(res1, "")
-		return nil, "makelog Result:" + ";" + "contract address:" + scope.Contract.Address().String() + ";" + "topics:" + res + ";" + "data" + resString, nil
+		return nil, "", nil
 	}
 }
 
