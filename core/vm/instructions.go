@@ -758,6 +758,16 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	// Get arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	// 处理args
+	var args_slice []string
+	args_string := ""
+
+	for _, b := range args {
+		hexString := hex.EncodeToString([]byte{b})
+		args_slice = append(args_slice, hexString)
+	}
+	args_string = strings.Join(args_slice, "")
+	// end
 	//TODO: use uint256.Int instead of converting with toBig()
 	var bigVal = big0
 	if !value.IsZero() {
@@ -789,7 +799,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "Result:" + resString, nil
+	return ret, "callcode Result:" + resString + ";" + "from addr:" + addr.Hex() + ";" + "to addr:" + toAddr.Hex() + ";" + "gas:" + strconv.FormatUint(gas, 10) + ";" + "value:" + value.String() + ";" + "args:" + args_string, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -804,6 +814,16 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	// Get arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	// 处理args
+	var args_slice []string
+	args_string := ""
+
+	for _, b := range args {
+		hexString := hex.EncodeToString([]byte{b})
+		args_slice = append(args_slice, hexString)
+	}
+	args_string = strings.Join(args_slice, "")
+	// end
 	ret, returnGas, err := interpreter.evm.DelegateCall(scope.Contract, toAddr, args, gas)
 	if err != nil {
 		temp.Clear()
@@ -826,7 +846,7 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "Result:" + resString, nil
+	return ret, "delegatecall Result:" + resString + ";" + "from addr:" + addr.Hex() + ";" + "to addr:" + toAddr.Hex() + ";" + "gas:" + strconv.FormatUint(gas, 10) + ";" + "args:" + args_string, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -840,6 +860,17 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 	toAddr := common.Address(addr.Bytes20())
 	// Get arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
+
+	// 处理args
+	var args_slice []string
+	args_string := ""
+
+	for _, b := range args {
+		hexString := hex.EncodeToString([]byte{b})
+		args_slice = append(args_slice, hexString)
+	}
+	args_string = strings.Join(args_slice, "")
+	// end
 
 	ret, returnGas, err := interpreter.evm.StaticCall(scope.Contract, toAddr, args, gas)
 	if err != nil {
@@ -865,7 +896,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "Result:" + resString, nil
+	return ret, "staticcall Result:" + resString + ";" + "from addr:" + addr.Hex() + ";" + "to addr:" + toAddr.Hex() + ";" + "gas:" + strconv.FormatUint(gas, 10) + ";" + "args:" + args_string, nil
 }
 
 func opReturn(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
