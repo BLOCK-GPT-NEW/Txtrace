@@ -6,21 +6,21 @@ type Transac struct {
 	// Tx_BlockHash string
 	Tx_BlockNum uint64
 	Tx_FromAddr string
+	Tx_ToAddr   string
 	Tx_Gas      uint64
 	// Tx_GasPrice  string
-	Tx_Hash   string
-	Tx_Input  string
-	Tx_Nonce  uint64
-	Tx_ToAddr string
-	Tx_Index  string
-	Tx_Value  string
+	Tx_Hash  string
+	Tx_Input string
+	Tx_Nonce uint64
+	Tx_Index int
+	Tx_Value string
 
 	Tx_Trace string
 
 	Re_contractAddress string
 	// Re_CumulativeGasUsed string
 	// Re_GasUsed           string
-	Re_Status string
+	Re_Status uint64
 	// Re_FailReason        string
 
 	Re_Log_Address string

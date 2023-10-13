@@ -19,7 +19,7 @@ package vm
 import (
 	"encoding/hex"
 	// "fmt"
-	// "strconv"
+	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -259,7 +259,7 @@ func opKeccak256(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (
 }
 func opAddress(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetBytes(scope.Contract.Address().Bytes()))
-	return nil, "Address Result:" + ";" + "Contract Address:" + scope.Stack.peek().String(), nil
+	return nil, "currently executing account:" + scope.Stack.peek().String(), nil
 }
 
 func opBalance(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -271,17 +271,17 @@ func opBalance(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]
 
 func opOrigin(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetBytes(interpreter.evm.Origin.Bytes()))
-	return nil, "", nil
+	return nil, "origin address:" + interpreter.evm.Origin.Hex(), nil
 }
 func opCaller(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetBytes(scope.Contract.Caller().Bytes()))
-	return nil, "", nil
+	return nil, "caller addreess:" + scope.Contract.Caller().Hex(), nil
 }
 
 func opCallValue(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	v, _ := uint256.FromBig(scope.Contract.value)
 	scope.Stack.push(v)
-	return nil, "", nil
+	return nil, "call value:" + scope.Contract.value.String(), nil
 }
 
 func opCallDataLoad(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -305,7 +305,7 @@ func opCallDataLoad(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	} else {
 		x.Clear()
 	}
-	return nil, "CallDataLoad Result:" + ";" + "args:" + resString, nil
+	return nil, "input data of current environment:" + resString, nil
 }
 
 func opCallDataSize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -333,7 +333,7 @@ func opCallDataCopy(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 
 func opReturnDataSize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetUint64(uint64(len(interpreter.returnData))))
-	return nil, "ReturnDataSize Result:" + scope.Stack.peek().String(), nil
+	return nil, "", nil
 }
 
 func opReturnDataCopy(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -535,7 +535,7 @@ func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 	val := interpreter.evm.StateDB.GetState(scope.Contract.Address(), hash)
 	loc.SetBytes(val.Bytes())
 	// print("hello opSload")
-	return nil, "Sload Result:" + ";" + "read" + ";" + "key:" + loc.String() + ";" + ";" + "value:" + val.String(), nil
+	return nil, "read" + ";" + "key:" + loc.String() + ";" + ";" + "value:" + val.String(), nil
 }
 
 func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -547,7 +547,7 @@ func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 
 	interpreter.evm.StateDB.SetState(scope.Contract.Address(), loc.Bytes32(), val.Bytes32())
 	// print("hello opSstore")
-	return nil, "Sstore Result" + ";" + "write" + ";" + "key:" + loc.String() + ";" + "value:" + val.String(), nil
+	return nil, "write" + ";" + "key:" + loc.String() + ";" + "value:" + val.String(), nil
 
 }
 
@@ -583,7 +583,7 @@ func opJumpdest(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 
 func opPc(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetUint64(*pc))
-	return nil, "Pc Result:" + scope.Stack.peek().String(), nil
+	return nil, "", nil
 }
 
 func opMsize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -593,7 +593,7 @@ func opMsize(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 
 func opGas(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	scope.Stack.push(new(uint256.Int).SetUint64(scope.Contract.Gas))
-	return nil, "", nil
+	return nil, "the amount of available gas:" + strconv.FormatUint(scope.Contract.Gas, 10), nil
 }
 
 func opCreate(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -712,14 +712,10 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	ret, returnGas, err := interpreter.evm.Call(scope.Contract, toAddr, args, gas, bigVal)
 
 	// cnz
-	//var tx *types.Transaction
 	var res []string
 	var resString string
-	// 遍历 []byte 中的每个字节
 	for _, b := range ret {
-		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
-		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
 	resString = strings.Join(res, "")
@@ -737,7 +733,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	scope.Contract.Gas += returnGas
 
 	interpreter.returnData = ret
-	return ret, "Call Result:" + resString, nil
+	return ret, "Result:" + resString, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -783,7 +779,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "CallCode Result:" + resString, nil
+	return ret, "Result:" + resString, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -812,20 +808,15 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 
 	interpreter.returnData = ret
 	// cnz
-	// var tx *types.Transaction
-
 	var res []string
 	var resString string
-	// 遍历 []byte 中的每个字节
 	for _, b := range ret {
-		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
-		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "DelegateCall Result:" + resString, nil
+	return ret, "Result:" + resString, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -858,23 +849,29 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 
 	var res []string
 	var resString string
-	// 遍历 []byte 中的每个字节
 	for _, b := range ret {
-		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
-		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
 	resString = strings.Join(res, "")
 	// end
-	return ret, "StaticCall Result:" + resString, nil
+	return ret, "Result:" + resString, nil
 }
 
 func opReturn(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
 	offset, size := scope.Stack.pop(), scope.Stack.pop()
 	ret := scope.Memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
 
-	return ret, "", errStopToken
+	// cnz
+	var ret_slice []string
+	var ret_string string
+	for _, b := range ret {
+		hexString := hex.EncodeToString([]byte{b})
+		ret_slice = append(ret_slice, hexString)
+	}
+	ret_string = strings.Join(ret_slice, "")
+	// end
+	return ret, "output data:" + ret_string, errStopToken
 }
 
 func opRevert(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {

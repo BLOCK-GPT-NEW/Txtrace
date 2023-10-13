@@ -250,20 +250,20 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		// Tx_BlockHash: blockHash.Hex(),
 		Tx_BlockNum: blockNumber.Uint64(),
 		Tx_FromAddr: msg.From.Hex(),
+		Tx_ToAddr:   toAddress, // Will be empty if contract creation
 		Tx_Gas:      result.UsedGas,
 		// Tx_GasPrice:  msg.GasPrice.String(),
-		Tx_Hash:   tx.Hash().Hex(),
-		Tx_Input:  input_data_string,
-		Tx_Nonce:  tx.Nonce(),
-		Tx_ToAddr: toAddress, // Will be empty if contract creation
-		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
-		Tx_Value:  msg.Value.String(),
+		Tx_Hash:  tx.Hash().Hex(),
+		Tx_Input: input_data_string,
+		Tx_Nonce: tx.Nonce(),
+		Tx_Index: statedb.TxIndex(),
+		Tx_Value: msg.Value.String(),
 
 		Tx_Trace:           mongo.TraceGlobal.String(),
 		Re_contractAddress: receipt.ContractAddress.Hex(),
 		// Re_CumulativeGasUsed: fmt.Sprint(receipt.CumulativeGasUsed),
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
-		Re_Status: fmt.Sprint(receipt.Status),
+		Re_Status: receipt.Status,
 
 		Re_Log_Address: log_address_string,
 		Re_Log_Topics:  log_topics_string,
