@@ -23,8 +23,9 @@ type Transac struct {
 	Re_Status string
 	// Re_FailReason        string
 
-	// Re_Logs []byte
-	// Re_Hash []string
+	Re_Log_Address string
+	Re_Log_Topics  string
+	Re_Log_Data    string
 }
 
 /* type Trace struct {

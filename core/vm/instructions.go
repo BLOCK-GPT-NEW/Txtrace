@@ -778,9 +778,7 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	var resString string
 	// 遍历 []byte 中的每个字节
 	for _, b := range ret {
-		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
-		// 将结果添加到 res 切片中
 		res = append(res, hexString)
 	}
 	resString = strings.Join(res, "")

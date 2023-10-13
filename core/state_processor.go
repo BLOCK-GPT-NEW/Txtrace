@@ -115,13 +115,8 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 }
 
 func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error) {
-
-	// cnz 处理TxHashGlobal
-	// mongo.TxHashGlobal.Reset()
-	// mongo.TxHashGlobal.WriteString(tx.Hash().Hex())
 	//[swx]
 	// Check for nil pointers to avoid nil pointer dereference
-
 	if msg == nil || config == nil || gp == nil || statedb == nil || blockNumber == nil || tx == nil || usedGas == nil || evm == nil {
 		log.Println("Error: state_processor.go applyTransaction line 118 received a nil parameter")
 		return nil, errors.New("received a nil parameter")
@@ -189,18 +184,39 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	receipt.BlockHash = blockHash
 	receipt.BlockNumber = blockNumber
 	receipt.TransactionIndex = uint(statedb.TxIndex())
-	// cnz
-	/*
-		var log_data []byte
-		var log_hash []string
-		// 遍历 Receipt 结构体中的 Logs 切片
-		for _, logEntry := range receipt.Logs {
-			// logEntry.Data =
-			// 提取每个 Log 结构体的 字段值，并将其添加到 切片中
-			log_data = append(log_data, logEntry.Data...)
-			log_hash = append(log_hash, logEntry.Address.Hex())
-		}
-	*/
+
+	// 处理一个交易中涉及到的log，log会会有若干信息，也就是数组，把数据全部转为string类型，中间未划分。cnz
+	var log_address []string
+	var log_topics []common.Hash
+	var log_data []byte
+
+	for _, logEntry := range receipt.Logs {
+		log_address = append(log_address, logEntry.Address.Hex())
+		log_data = append(log_data, logEntry.Data...)
+		log_topics = append(log_topics, logEntry.Topics...)
+	}
+	// 处理日志中address
+	log_address_string := strings.Join(log_address, "")
+	// 处理日志中topics
+	log_topics_string := ""
+	var log_topics_string_slice []string
+
+	for _, b := range log_topics {
+		hexString := b.Hex()
+		log_topics_string_slice = append(log_topics_string_slice, hexString)
+	}
+	log_topics_string = strings.Join(log_topics_string_slice, "")
+	// 处理日志中data
+	var log_data_string_slice []string
+	log_data_string := ""
+
+	for _, b := range log_data {
+		hexString := hex.EncodeToString([]byte{b})
+		log_data_string_slice = append(log_data_string_slice, hexString)
+	}
+	log_data_string = strings.Join(log_data_string_slice, "")
+	//end
+
 	//[swx]
 	// Check if ClientGlobal is nil and try to reconnect
 	if mongo.ClientGlobal == nil {
@@ -211,26 +227,21 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 			log.Printf("Failed to reconnect to MongoDB: %v", recon_err)
 		}
 	}
+	//end
 
-	// 处理input
-	// 处理data
-	var res1 []string
-	var resString string
+	// 处理input data cnz
+	var input_data_slice []string
+	var input_data_string string
 	// 遍历 []byte 中的每个字节
 	for _, b := range tx.Data() {
 		// 使用 encoding/hex 包将字节转换为十六进制字符串
 		hexString := hex.EncodeToString([]byte{b})
 		// 将结果添加到 res1 切片中
-		res1 = append(res1, hexString)
+		input_data_slice = append(input_data_slice, hexString)
 	}
-	resString = strings.Join(res1, "")
-	/*// 将 res1 切片中的十六进制字符串连接为一个字符串
-	finalResult := ""
-	for _, hexStr := range res1 {
-		finalResult += hexStr
-	}*/
+	input_data_string = strings.Join(input_data_slice, "")
+	// end
 
-	// 构造交易结构体
 	mongo.BashTxs[mongo.CurrentNum] = mongo.Transac{
 		// Tx_BlockHash: blockHash.Hex(),
 		Tx_BlockNum: blockNumber.Uint64(),
@@ -238,7 +249,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		Tx_Gas:      result.UsedGas,
 		// Tx_GasPrice:  msg.GasPrice.String(),
 		Tx_Hash:   tx.Hash().Hex(),
-		Tx_Input:  resString,
+		Tx_Input:  input_data_string,
 		Tx_Nonce:  tx.Nonce(),
 		Tx_ToAddr: toAddress, // Will be empty if contract creation
 		Tx_Index:  fmt.Sprint(statedb.TxIndex()),
@@ -250,8 +261,9 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
 		Re_Status: fmt.Sprint(receipt.Status),
 
-		// Re_Logs: log_data,
-		// Re_Hash: log_hash,
+		Re_Log_Address: log_address_string,
+		Re_Log_Topics:  log_topics_string,
+		Re_Log_Data:    log_data_string,
 	}
 
 	if mongo.CurrentNum != mongo.BashNum-1 {
