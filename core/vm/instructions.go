@@ -535,7 +535,7 @@ func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 	val := interpreter.evm.StateDB.GetState(scope.Contract.Address(), hash)
 	loc.SetBytes(val.Bytes())
 	// print("hello opSload")
-	return nil, "r" + ";" + "key:" + loc.String() + ";" + "val:" + val.String(), nil
+	return nil, "read" + ";" + "key:" + loc.String() + ";" + "val:" + val.String(), nil
 }
 
 func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, string, error) {
@@ -547,7 +547,7 @@ func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 
 	interpreter.evm.StateDB.SetState(scope.Contract.Address(), loc.Bytes32(), val.Bytes32())
 	// print("hello opSstore")
-	return nil, "w" + ";" + "key:" + loc.String() + ";" + "val:" + val.String(), nil
+	return nil, "write" + ";" + "key:" + loc.String() + ";" + "val:" + val.String(), nil
 
 }
 
