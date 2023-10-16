@@ -986,14 +986,7 @@ func makeLog(size int) executionFunc {
 			// core/state doesn't know the current block number.
 			BlockNumber: interpreter.evm.Context.BlockNumber.Uint64(),
 		})
-		// cnz
-		var topics_string_slice []string
-		for _, b := range topics {
-			hexString := b.Hex()
-			topics_string_slice = append(topics_string_slice, hexString)
-		}
-		topics_string := strings.Join(topics_string_slice, ",")
-		// 处理日志中data
+		// cnz 处理日志中data
 		var data_string_slice []string
 		for _, b := range d {
 			hexString := hex.EncodeToString([]byte{b})
@@ -1001,7 +994,7 @@ func makeLog(size int) executionFunc {
 		}
 		data_string := strings.Join(data_string_slice, "")
 		// end
-		return nil, "addr:" + scope.Contract.Address().Hex() + ";" + "topics:" + topics_string + ";" + "data:" + data_string, nil
+		return nil, "data:" + data_string, nil
 	}
 }
 
