@@ -34,6 +34,6 @@ type Log struct {
 }
 
 // 默认为50， 这里改成1仅为了测试
-var BashNum int = 1
+var BashNum int = 50
 var BashTxs = make([]interface{}, BashNum)
 var CurrentNum int = 0
