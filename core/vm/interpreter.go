@@ -241,12 +241,21 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool, r
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
 
 		if !redundency {
-			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
-			mongo.TraceGlobal.WriteString(";")
-			mongo.TraceGlobal.WriteString(op.String())
-			mongo.TraceGlobal.WriteString(";")
-			mongo.TraceGlobal.WriteString(vandal_constant)
-			mongo.TraceGlobal.WriteString("|")
+			if op.String() == "LOG0" || op.String() == "LOG1" || op.String() == "LOG2" || op.String() == "LOG3" {
+				mongo.LogGlobal.WriteString(strconv.FormatUint(old_pc, 10))
+				mongo.LogGlobal.WriteString(";")
+				mongo.LogGlobal.WriteString(op.String())
+				mongo.LogGlobal.WriteString(";")
+				mongo.LogGlobal.WriteString(vandal_constant)
+				mongo.LogGlobal.WriteString("|")
+			} else {
+				mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
+				mongo.TraceGlobal.WriteString(";")
+				mongo.TraceGlobal.WriteString(op.String())
+				mongo.TraceGlobal.WriteString(";")
+				mongo.TraceGlobal.WriteString(vandal_constant)
+				mongo.TraceGlobal.WriteString("|")
+			}
 		}
 
 		if err != nil {

@@ -28,11 +28,11 @@ type Transac struct {
 	Re_Log_Data    string
 }
 
-/* type Trace struct {
-	Tx_Trace string
-	Tx_Hash  string
+type Log struct {
+	Tx_Hash   string
+	Log_Trace string
 }
-*/
+
 // 默认为50， 这里改成1仅为了测试
 var BashNum int = 50
 var BashTxs = make([]interface{}, BashNum)
