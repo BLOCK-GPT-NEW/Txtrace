@@ -313,7 +313,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		_, err := collection.InsertMany(context.Background(), mongo.BashLogs)
 		if err != nil {
 			// 日志记录或错误处理
-			log.Printf("Failed to insert transactions: %v", err)
+			log.Printf("Failed to insert logs: %v", err)
 			// Convert the failed transaction data to JSON and write to an error file
 			for _, txInterface := range mongo.BashLogs {
 				if tx, ok := txInterface.(mongo.Log); ok {
