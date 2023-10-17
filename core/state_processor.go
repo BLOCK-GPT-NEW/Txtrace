@@ -262,6 +262,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		Tx_Value: msg.Value.String(),
 
 		Tx_Trace:           mongo.TraceGlobal.String(),
+		Log_Trace:          mongo.LogGlobal.String(),
 		Re_contractAddress: receipt.ContractAddress.Hex(),
 		// Re_CumulativeGasUsed: fmt.Sprint(receipt.CumulativeGasUsed),
 		// Re_GasUsed:           fmt.Sprint(receipt.GasUsed),
@@ -299,7 +300,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 
 	//[end]
 
-	// 增加Log
+	/* 增加Log
 	mongo.BashLogs[mongo.Current_Log_Num] = mongo.Log{
 		// Tx_BlockHash: blockHash.Hex(),
 		Tx_Hash:   tx.Hash().Hex(),
@@ -330,7 +331,8 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		}
 		mongo.Current_Log_Num = 0
 	}
-	// end
+	end
+	*/
 	return receipt, err
 }
 
