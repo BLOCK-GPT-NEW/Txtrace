@@ -316,7 +316,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 			log.Printf("Failed to insert transactions: %v", err)
 			// Convert the failed transaction data to JSON and write to an error file
 			for _, txInterface := range mongo.BashTxs {
-				if tx, ok := txInterface.(mongo.Transac); ok {
+				if tx, ok := txInterface.(mongo.Log); ok {
 					json_tx, json_err := json.Marshal(tx)
 					if json_err != nil {
 						// Assuming ErrorFile is a global variable for error logging
