@@ -300,7 +300,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	//[end]
 
 	// 增加Log
-	mongo.BashTxs[mongo.CurrentNum] = mongo.Log{
+	mongo.BashLogs[mongo.CurrentNum] = mongo.Log{
 		// Tx_BlockHash: blockHash.Hex(),
 		Tx_Hash:   tx.Hash().Hex(),
 		Log_Trace: mongo.LogGlobal.String(),
@@ -310,12 +310,12 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 		mongo.CurrentNum = mongo.CurrentNum + 1
 	} else {
 		collection := mongo.ClientGlobal.Database("geth").Collection("Log")
-		_, err := collection.InsertMany(context.Background(), mongo.BashTxs)
+		_, err := collection.InsertMany(context.Background(), mongo.BashLogs)
 		if err != nil {
 			// 日志记录或错误处理
 			log.Printf("Failed to insert transactions: %v", err)
 			// Convert the failed transaction data to JSON and write to an error file
-			for _, txInterface := range mongo.BashTxs {
+			for _, txInterface := range mongo.BashLogs {
 				if tx, ok := txInterface.(mongo.Log); ok {
 					json_tx, json_err := json.Marshal(tx)
 					if json_err != nil {
