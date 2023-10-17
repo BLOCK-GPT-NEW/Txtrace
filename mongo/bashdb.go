@@ -38,3 +38,4 @@ var BashNum int = 50
 var BashTxs = make([]interface{}, BashNum)
 var BashLogs = make([]interface{}, BashNum)
 var CurrentNum int = 0
+var Current_Log_Num int = 0

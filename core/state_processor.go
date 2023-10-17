@@ -300,14 +300,14 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 	//[end]
 
 	// 增加Log
-	mongo.BashLogs[mongo.CurrentNum] = mongo.Log{
+	mongo.BashLogs[mongo.Current_Log_Num] = mongo.Log{
 		// Tx_BlockHash: blockHash.Hex(),
 		Tx_Hash:   tx.Hash().Hex(),
 		Log_Trace: mongo.LogGlobal.String(),
 	}
 
-	if mongo.CurrentNum != mongo.BashNum-1 {
-		mongo.CurrentNum = mongo.CurrentNum + 1
+	if mongo.Current_Log_Num != mongo.BashNum-1 {
+		mongo.Current_Log_Num = mongo.Current_Log_Num + 1
 	} else {
 		collection := mongo.ClientGlobal.Database("geth").Collection("Log")
 		_, err := collection.InsertMany(context.Background(), mongo.BashLogs)
@@ -328,7 +328,7 @@ func applyTransaction(msg *Message, config *params.ChainConfig, gp *GasPool, sta
 				}
 			}
 		}
-		mongo.CurrentNum = 0
+		mongo.Current_Log_Num = 0
 	}
 	// end
 	return receipt, err

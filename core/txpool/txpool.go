@@ -18,7 +18,7 @@ package txpool
 
 import (
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -197,7 +197,8 @@ func (p *TxPool) Close() error {
 
 	// mongo.SessionGlobal.Close()
 	// mongo.ErrorFile.Close()
-	collection := mongo.ClientGlobal.Database("geth").Collection("transaction")
+
+	/*collection := mongo.ClientGlobal.Database("geth").Collection("transaction")
 
 	// Insert data
 	_, err := collection.InsertMany(context.TODO(), mongo.BashTxs[0:mongo.CurrentNum+1])
@@ -215,7 +216,7 @@ func (p *TxPool) Close() error {
 			}
 		}
 	}
-
+	*/
 	// Close the MongoDB client connection
 	if err := mongo.ClientGlobal.Disconnect(context.TODO()); err != nil {
 		// Handle disconnection error
