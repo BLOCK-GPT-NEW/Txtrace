@@ -15,8 +15,8 @@ type Transac struct {
 	Tx_Index int
 	Tx_Value string
 
-	Tx_Trace string
-
+	Tx_Trace           string
+	Log_Trace          string
 	Re_contractAddress string
 	// Re_CumulativeGasUsed string
 	// Re_GasUsed           string
