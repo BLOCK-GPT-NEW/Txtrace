@@ -240,7 +240,9 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool, r
 		vandal_constant := ""
 		res, vandal_constant, err = operation.execute(&pc, in, callContext)
 
+		
 		if !redundency {
+			mongo.LockTraceGlobalMutex()
 			mongo.TraceGlobal.WriteString(strconv.FormatUint(old_pc, 10))
 			mongo.TraceGlobal.WriteString(";")
 			mongo.TraceGlobal.WriteString(op.String())
@@ -252,7 +254,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool, r
 				mongo.TraceGlobal.WriteString(vandal_constant)
 			}
 			mongo.TraceGlobal.WriteString("|")
-
+			mongo.UnlockTraceGlobalMutex()
 		}
 
 		if err != nil {

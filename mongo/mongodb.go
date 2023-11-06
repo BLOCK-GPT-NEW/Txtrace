@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	// "sync"
+	"sync"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,6 +14,20 @@ import (
 
 var ClientGlobal *mongo.Client // 替代原来的 *mgo.Session
 var TraceGlobal = bytes.NewBuffer(make([]byte, 0, 10485760))
+
+// 私有包级变量
+var traceGlobalMutex sync.Mutex
+
+// Exported functions to control the access to the mutex
+// LockTraceGlobalMutex 提供了一个锁定互斥锁的公共方法
+func LockTraceGlobalMutex() {
+    traceGlobalMutex.Lock()
+}
+
+// UnlockTraceGlobalMutex 提供了一个解锁互斥锁的公共方法
+func UnlockTraceGlobalMutex() {
+    traceGlobalMutex.Unlock()
+}
 
 var LogGlobal = bytes.NewBuffer(make([]byte, 0, 10485760))
 var CurrentTx string
@@ -23,7 +37,7 @@ var ErrorFile *os.File
 
 func InitMongoDb() {
 	var err error
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27018")
+	clientOptions := options.Client().ApplyURI("mongodb://b515:WdnPQyE9jzFitkMs@10.12.46.32:27020")
 
 	// Connect to MongoDB
 	ClientGlobal, err = mongo.Connect(context.TODO(), clientOptions)
